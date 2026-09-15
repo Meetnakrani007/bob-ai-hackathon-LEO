@@ -1,0 +1,4 @@
+LOCAL DEMO (RUNS LOCALLY):
+http://localhost:5173/
+
+Follow docs/setup-guide.md to launch services locally.
