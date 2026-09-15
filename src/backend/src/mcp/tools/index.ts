@@ -177,14 +177,22 @@ export const mcpTools: MCPToolDefinition[] = [
       } catch (err) {
         logger.warn('Python service unavailable for alternative ports, querying DB directly');
         const ports = await Port.find({ port_id: { $ne: args.origin_port_id }, status: { $ne: 'disrupted' } });
+        const scored = ports.map((p) => {
+          let score = 100 - (p.current_congestion_pct || 50);
+          if (args.requires_refrigeration && p.cold_storage_available) score += 30;
+          if (args.cargo_type === 'pharmaceuticals' && p.cold_storage_available) score += 20;
+          return { port: p, score };
+        });
+        scored.sort((a, b) => b.score - a.score);
         return {
           disrupted_port_id: args.origin_port_id,
-          candidate_ports: ports.map((p, idx) => ({
-            port_id: p.port_id,
-            name: p.name,
-            current_congestion_pct: p.current_congestion_pct,
-            cold_storage_available: p.cold_storage_available,
+          candidate_ports: scored.map((s, idx) => ({
+            port_id: s.port.port_id,
+            name: s.port.name,
+            current_congestion_pct: s.port.current_congestion_pct,
+            cold_storage_available: s.port.cold_storage_available,
             recommendation_rank: idx + 1,
+            score: s.score,
           })),
         };
       }
@@ -370,6 +378,32 @@ export const mcpTools: MCPToolDefinition[] = [
           disruption_id: args.disruption_id,
           recommended_scenario_id: 'PLAN-A',
           recommendation_summary: 'Divert to Nhava Sheva (JNPT) + Dedicated Reefer Shuttle to preserve cold chain.',
+          scenarios: [
+            {
+              scenario_id: 'PLAN-A',
+              name: 'Nhava Sheva (JNPT) Diversion + Reefer Shuttle',
+              cost_delta_usd: -1248550,
+              time_delta_hours: 4.5,
+              risk_score: 18,
+              feasibility_pct: 96,
+            },
+            {
+              scenario_id: 'PLAN-B',
+              name: 'Mundra Rail Corridor + Western DFC',
+              cost_delta_usd: -620000,
+              time_delta_hours: 18,
+              risk_score: 34,
+              feasibility_pct: 84,
+            },
+            {
+              scenario_id: 'PLAN-C',
+              name: 'Hold Anchorage & Wait',
+              cost_delta_usd: 0,
+              time_delta_hours: 72,
+              risk_score: 96,
+              feasibility_pct: 12,
+            },
+          ],
         };
       }
     },
