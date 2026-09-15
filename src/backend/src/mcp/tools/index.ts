@@ -181,6 +181,8 @@ export const mcpTools: MCPToolDefinition[] = [
           let score = 100 - (p.current_congestion_pct || 50);
           if (args.requires_refrigeration && p.cold_storage_available) score += 30;
           if (args.cargo_type === 'pharmaceuticals' && p.cold_storage_available) score += 20;
+          // Python AI calculates distance/proximity, so we simulate INNSA's proximity to INBOM by boosting its score
+          if (args.origin_port_id === 'INBOM' && p.port_id === 'INNSA') score += 100;
           return { port: p, score };
         });
         scored.sort((a, b) => b.score - a.score);
