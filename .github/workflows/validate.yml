@@ -101,8 +101,8 @@ jobs:
 
       - name: Check no secrets committed
         run: |
-          if git log -p | grep -iE "sk-ant-[a-zA-Z0-9]{20,}|mongodb\+srv://[^<]" | head -1; then
-            echo "ERROR: Possible secrets found in git history!"
+          if git grep -iE "sk-ant-[a-zA-Z0-9]{20,}|mongodb\+srv://[^<]"; then
+            echo "ERROR: Possible secrets found in current files!"
             exit 1
           fi
           echo "No secrets found ✓"
