@@ -17,15 +17,11 @@
 
 ## 🎯 Problem Statement
 
-> In 2–3 sentences: What problem does your project solve? Who experiences this problem?
-
 Global maritime and intermodal supply chains face catastrophic operational failures when unexpected disruptions strike major ports or transit corridors, leaving logistics managers blinded by conflicting reports and manual spreadsheets. High-value temperature-sensitive cargo (vaccines, biologics) suffers devastating spoilage once disconnected from shore power, while idle fleet assets sit undiscovered and demurrage penalties cascade. Logistics managers and fleet dispatchers need an explainable, real-time decision copilot that instantly quantifies network risk, protects cold-chain cargo, and generates actionable, cost-optimized rerouting alternatives with a full audit trail.
 
 ---
 
 ## 💡 Solution
-
-> In 2–3 sentences: What did you build? How does it solve the problem above?
 
 SupplyGuard AI is an autonomous, explainable supply chain copilot built on the Model Context Protocol (MCP) that replaces manual reactive firefighting with an end-to-end human-in-the-loop decision loop. It ingests multi-source threat intelligence with Bayesian corroboration, locates affected shipments, predicts cold-chain battery buffer exhaustion before excursions occur, and dynamically evaluates candidate diversion routes using multi-criteria optimization. Shift managers receive transparent, 6-point explainable mitigation plans with one-click authorization gates and immutable SHA-256 audit logging.
 
@@ -80,8 +76,6 @@ SupplyGuard AI is an autonomous, explainable supply chain copilot built on the M
 ---
 
 ## ⚡ How to Run
-
-> Copy these exact steps from your `docs/setup-guide.md`
 
 ### Option 1: Docker Compose (Fastest — One Command)
 

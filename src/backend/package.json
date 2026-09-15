@@ -10,8 +10,8 @@
     "seed": "ts-node src/seed.ts",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
-    "lint": "eslint src/ --ext .ts",
-    "lint:fix": "eslint src/ --ext .ts --fix",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "mcp:dev": "ts-node src/mcp/index.ts"
   },
   "dependencies": {

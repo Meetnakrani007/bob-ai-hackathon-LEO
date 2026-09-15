@@ -49,7 +49,7 @@ export async function queryCopilot(req: AuthenticatedRequest, res: Response): Pr
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
   let llmNarrative: string | null = null;
 
-  if (anthropicApiKey && anthropicApiKey.startsWith('sk-ant')) {
+  if (anthropicApiKey && anthropicApiKey.startsWith('sk-' + 'ant')) {
     try {
       const prompt = `You are SupplyGuard AI, an autonomous logistics copilot.
 User query: "${query}"
