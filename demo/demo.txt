@@ -1,0 +1,58 @@
+DEMONSTRATION & EVALUATION WALKTHROUGH
+
+SupplyGuard AI demonstration script and evaluation protocol for hackathon judges.
+
+--------------------------------------------------------------------------------
+DEMO VIDEO LINK
+--------------------------------------------------------------------------------
+- Video Demonstration URL: https://drive.google.com/file/d/17p_F8yHCKWFzqPWS-yVjWj8gAy5BQC8-/view?usp=sharing
+- Local Application Access: http://localhost:5173/
+
+--------------------------------------------------------------------------------
+5-MINUTE EVALUATION WALKTHROUGH SCRIPT
+--------------------------------------------------------------------------------
+Step 1: Mission Control Dashboard (0:00 - 0:45)
+- Open http://localhost:5173/
+- Notice live KPI metrics: Active Threats ($14.5M USD exposure), 60 Shipments Monitored, Cold-Chain Status (Stabilized).
+- Real-time IoT sensor telemetry stream for container CONT-REEFER-9042.
+
+Step 2: Threat Intel & Incident Corroboration (0:45 - 1:30)
+- Navigate to "Threat Intel & Ports" via the sidebar.
+- Inspect the 94% verified confidence score for Mumbai Port strike, backed by port bulletins, Reuters wire, and AIS telemetry.
+- Click "Inspect Problem Matrix" or "Open Problem Matrix & Choose Plan".
+
+Step 3: Autonomous Scenario Matrix & Trade-Off Modeling (1:30 - 2:30)
+- In the Scenario Matrix, evaluate the 3 pre-computed contingency plans:
+  * Plan A (JNPT Diversion): 8km distance, 1,450 plugs, saves $1,248,550 USD, lowers risk to 18/100 (96% Feasible).
+  * Plan B (Mundra Rail): 310 NM deviation, 820 plugs, risk score 34/100 (84% Feasible).
+  * Plan C (Hold Anchorage): 100% vaccine spoilage failure, risk score 96/100 (Catastrophic).
+- Click "Set as Active Plan & Execute" on Plan A.
+
+Step 4: Human-in-the-Loop Governance & SHA-256 Sealing (2:30 - 3:15)
+- Click "Authorize & Execute Plan A" to open the Executive Approval Gate.
+- Review pre-calculated financial savings ($1.248M) and transit delta (+4.5 hours).
+- Enter rationale and sign reroute order as Logistics Manager.
+- Navigate to "Governance & Audit Trail" to view the immutable SHA-256 cryptographic signature.
+
+Step 5: Cold-Chain Guard & Atal Setu Reefer Intercept (3:15 - 3:45)
+- Navigate to "Cold-Chain Guard".
+- Observe thermal excursion buffer countdown (4.5h remaining).
+- Click "Authorize Reefer Truck Intercept" to dispatch TRK-REEFER-01 over Atal Setu MTHL highway.
+- Watch the thermal gauge stabilize in the safe green zone.
+
+Step 6: Fleet Manifest & Dynamic Risk Resolution Studio (3:45 - 4:15)
+- Navigate to "Fleet & Cargo Manifest".
+- Find any high-risk shipment (risk score >= 70).
+- Click "Solve Risk" to open the Risk Resolution Studio.
+- Select a mitigation plan (e.g. Western DFC Rail) and apply it.
+- Watch the risk score immediately drop from 98 to safe levels (16/100) and the sidebar counter decrement.
+
+Step 7: 72h Demurrage Cascade Simulator (4:15 - 4:45)
+- Navigate to "72h Cascade Simulator".
+- Scrub the timeline slider from Hour 0 to Hour 72 to visualize compounding demurrage costs.
+- Toggle mitigation active to view $1.25M saved.
+
+Step 8: AI Operations Copilot with MCP Tools (4:45 - 5:00)
+- Click the floating "Quick Copilot" button.
+- Ask: "What is our exposure in Mumbai and what is the optimal reroute plan?"
+- Observe the Copilot calling MCP tools (verify_disruption, find_affected_shipments, compare_scenarios) in real time.

@@ -1,0 +1,52 @@
+2. PROPOSED SOLUTION
+
+SupplyGuard AI replaces manual, reactive firefighting with an explainable, human-approved decision loop:
+
+- Verify: cross-check disruption reports against multiple sources and assign a confidence score, instead of acting on rumor.
+- Identify impact: automatically find every shipment, port, and fleet asset affected by the disruption.
+- Protect cold-chain cargo: monitor temperature telemetry in real time and flag excursions before spoilage occurs.
+- Compare options: generate 2–3 ranked alternative plans (reroute, redeploy fleet, hold) with cost/time/risk trade-offs.
+- Human approval: no action executes automatically; a Logistics Manager or Admin must approve it.
+- Audit: every approved action is permanently logged for compliance and accountability.
+
+--------------------------------------------------------------------------------
+THE 6 CORE CAPABILITIES IN DETAIL
+--------------------------------------------------------------------------------
+1. Evidence-Backed Incident Verification
+   - Cross-checks Port Authority Emergency Bulletins, Reuters / Lloyd's List, and AIS satellite telemetry.
+   - Calculates a quantitative Confidence Score (e.g. 94% verified authenticity) before raising alarms.
+
+2. Automated Impact Identification & Dynamic Risk Studio
+   - Scans vessels in the disruption radius and computes a multi-factor risk score (0-100).
+   - Embedded Risk Studio allows applying 3 micro-mitigation plans that recalculate risk dynamically.
+
+3. Real-Time Cold-Chain Guard & Fleet Mobilization
+   - Monitors container internal temperature (4.2°C) vs. ambient heat (34°C).
+   - Triggers one-click Reefer Truck Intercept: mobilizes TRK-REEFER-01 over Atal Setu MTHL corridor.
+
+4. Multi-Factor Scenario Trade-Off Matrix
+   - Plan A (JNPT Diversion): 8km distance, 1,450 plugs, saves $1,248,550 USD, post-risk 18/100 (96% Feasible).
+   - Plan B (Mundra Rail): 310 NM north, automated rail link, post-risk 34/100 (84% Feasible).
+   - Plan C (Hold Anchorage): Stationary idling, 100% vaccine spoilage failure, post-risk 96/100 (Catastrophic).
+
+5. Human-in-the-Loop (HITL) Governance Gate
+   - Port diversions and fleet mobilizations require authenticated approval by Logistics Manager or Admin.
+   - Normal users have read-only visibility.
+
+6. Permanent Cryptographic Audit Trail
+   - Every approved intervention generates an immutable SHA-256 cryptographic audit record.
+   - Logs timestamp, actor identity, action type, justification, and digital signature hash.
+
+--------------------------------------------------------------------------------
+ANTHROPIC MODEL CONTEXT PROTOCOL (MCP) SPELLED OUT: 10 TOOLS
+--------------------------------------------------------------------------------
+1. verify_disruption: Multi-source incident validation
+2. find_affected_shipments: Radius-based vessel & cargo discovery
+3. calculate_shipment_risk: Perishability & delay composite scoring
+4. find_alternative_ports: Port capacity & reefer plug discovery
+5. evaluate_route: Bunker fuel, toll fee, and transit calculation
+6. find_available_fleet: Idle reefer trucks and rail freight matching
+7. analyze_cold_chain: Thermal decay differential modeling
+8. simulate_network_impact: 72-hour financial cascade projection
+9. compare_scenarios: Multi-criteria Pareto trade-off analysis
+10. generate_action_plan: Synthesizes operational execution orders

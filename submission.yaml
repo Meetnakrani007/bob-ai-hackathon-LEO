@@ -1,0 +1,41 @@
+# IBM BoB AI Innovation Hackathon 2026 - Submission
+team_name: "LEO"
+project_name: "SupplyGuard AI"
+track: "L2 - Supply Chain Disruption Assistant & Fleet Utilisation Optimizer"
+description: "MCP-powered supply-chain operations copilot that understands disruptions, locates affected shipments, calculates risk, protects cold-chain cargo, identifies available fleet, compares alternative ports and routes, predicts cascading impact, and recommends actions to logistics managers — with human approval and a full audit trail."
+
+members:
+  - name: "Meet Nakrani"
+    id: "23dcs064"
+    role: "MCP & MERN"
+    email: "23dcs064@charusat.edu.in"
+    github: "Meetnakrani007"
+  - name: "Akshit Vaghasiya"
+    id: "23dit075"
+    role: "Python Analyst"
+    email: "23dit075@charusat.edu.in"
+
+tech_stack:
+  frontend: "React 18 + Vite + TypeScript + TailwindCSS + shadcn/ui"
+  backend: "Node.js 20 LTS + Express 4 + TypeScript"
+  database: "MongoDB 7 + Mongoose"
+  analytics: "Python 3.11 + FastAPI + Pydantic"
+  ai_protocol: "Model Context Protocol (MCP) via @modelcontextprotocol/sdk"
+  ai_reasoning: "Anthropic Claude API & IBM Bob"
+  cache: "Redis 7"
+  auth: "JWT + bcrypt + RBAC"
+  realtime: "Socket.IO (WebSockets)"
+  devops: "Docker + docker-compose + GitHub Actions"
+  observability: "Winston + Morgan + Prometheus + Sentry"
+
+repository: "https://github.com/Meetnakrani007/bob-ai-hackathon-LEO"
+demo_video: "https://drive.google.com/file/d/17p_F8yHCKWFzqPWS-yVjWj8gAy5BQC8-/view?usp=sharing"
+live_demo: "http://localhost:5173"
+
+bob_usage:
+  planning: true
+  code_generation: true
+  code_review: true
+  debugging: true
+  documentation: true
+  architecture_diagrams: true

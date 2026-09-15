@@ -1,0 +1,183 @@
+openapi: "3.0.3"
+info:
+  title: SupplyGuard AI API
+  description: |
+    REST API for the SupplyGuard AI supply-chain disruption copilot.
+    All endpoints require JWT authentication unless noted as Public.
+  version: "1.0.0"
+  contact:
+    name: Team LEO
+    url: https://github.com/Meetnakrani007/bob-ai-hackathon-LEO
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      tags: [System]
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/auth/login:
+    post:
+      summary: Login and receive JWT tokens
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT tokens issued
+        "401":
+          description: Invalid credentials
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Auth]
+      responses:
+        "200":
+          description: New access token issued
+
+  /api/shipments:
+    get:
+      summary: List shipments with filters
+      tags: [Shipments]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: risk
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated shipment list
+
+  /api/shipments/{id}/risk:
+    get:
+      summary: Get risk score for a shipment
+      tags: [Shipments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Risk score and factors
+
+  /api/fleet/available:
+    get:
+      summary: List available fleet assets
+      tags: [Fleet]
+      responses:
+        "200":
+          description: Available fleet assets
+
+  /api/ports/{id}/status:
+    get:
+      summary: Get port status
+      tags: [Ports]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Port status snapshot
+
+  /api/disruptions/active:
+    get:
+      summary: List active disruptions
+      tags: [Disruptions]
+      responses:
+        "200":
+          description: Active disruptions
+
+  /api/copilot/query:
+    post:
+      summary: Send natural language query to AI Copilot
+      tags: [Copilot]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  example: "Mumbai Port has a strike. What should I do?"
+      responses:
+        "200":
+          description: AI recommendation with tool outputs
+
+  /api/actions/{id}/approve:
+    post:
+      summary: Approve or reject a proposed action
+      tags: [Actions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Action approved/rejected
+
+  /api/audit-logs:
+    get:
+      summary: Query audit trail
+      tags: [Audit]
+      responses:
+        "200":
+          description: Audit log entries
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
