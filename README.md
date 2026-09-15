@@ -46,7 +46,7 @@ SupplyGuard AI is an autonomous, explainable supply chain copilot built on the M
 | **Frameworks** | React 18, Vite, TailwindCSS, Express 4, FastAPI, Pydantic v2 |
 | **IBM Technologies** | IBM Bob AI Engineering Copilot, Model Context Protocol (MCP) via `@modelcontextprotocol/sdk` |
 | **Databases** | MongoDB 7 (Mongoose), Redis 7 (In-memory telemetry & caching) |
-| **Other** | Docker, Docker Compose, Socket.IO, Pytest (23/23 tests passing), Jest, GitHub Actions CI |
+| **Other** | Docker, Docker Compose, Socket.IO, Pytest (23/23 tests passing), Jest, GitHub Actions CI | 
 
 ---
 
