@@ -41,7 +41,7 @@ export const ShipmentsGrid: React.FC<ShipmentsGridProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'shipments' | 'fleet'>('shipments');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterMode, setFilterMode] = useState<'all' | 'reefer' | 'high_risk'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'in_transit' | 'reefer' | 'high_risk' | 'delivered'>('all');
   const [selectedDetailShipment, setSelectedDetailShipment] = useState<any | null>(null);
   const [solvingShipment, setSolvingShipment] = useState<any | null>(null);
   const [selectedSolutionPlanId, setSelectedSolutionPlanId] = useState<string>('PLAN-1');
@@ -74,12 +74,17 @@ export const ShipmentsGrid: React.FC<ShipmentsGridProps> = ({
     if (!matchesSearch) return false;
     if (filterMode === 'reefer') return s.requires_refrigeration;
     if (filterMode === 'high_risk') return s.risk_score >= 70 && s.status !== 'mitigated' && s.status !== 'rerouted';
+    if (filterMode === 'delivered') return s.status === 'delivered';
+    if (filterMode === 'in_transit') return s.status === 'in_transit' || s.status === 'rerouted' || s.status === 'mitigated';
     return true;
   });
 
   const highRiskCount = effectiveShipmentList.filter(
     (s) => s.risk_score >= 70 && s.status !== 'mitigated' && s.status !== 'rerouted'
   ).length;
+
+  const deliveredCount = effectiveShipmentList.filter((s) => s.status === 'delivered').length;
+  const inTransitCount = effectiveShipmentList.filter((s) => s.status === 'in_transit' || s.status === 'rerouted' || s.status === 'mitigated').length;
 
   // 3 Concrete Solution Plan Options per shipment
   const getSolutionPlans = (shipment: any) => [
@@ -231,14 +236,23 @@ export const ShipmentsGrid: React.FC<ShipmentsGridProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg text-xs">
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg text-xs overflow-x-auto">
               <button
                 onClick={() => setFilterMode('all')}
                 className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
                   filterMode === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                All
+                All ({effectiveShipmentList.length})
+              </button>
+              <button
+                onClick={() => setFilterMode('in_transit')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                  filterMode === 'in_transit' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Package className="w-3 h-3" />
+                <span>In-Transit ({inTransitCount})</span>
               </button>
               <button
                 onClick={() => setFilterMode('reefer')}
@@ -257,6 +271,15 @@ export const ShipmentsGrid: React.FC<ShipmentsGridProps> = ({
               >
                 <AlertTriangle className="w-3 h-3" />
                 <span>Risk ≥70 ({highRiskCount})</span>
+              </button>
+              <button
+                onClick={() => setFilterMode('delivered')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                  filterMode === 'delivered' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Completed ({deliveredCount})</span>
               </button>
             </div>
           </div>
@@ -377,21 +400,29 @@ export const ShipmentsGrid: React.FC<ShipmentsGridProps> = ({
 
                     <td className="py-3 px-3">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit ${
                           isAtRisk
                             ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                            : currentStatus === 'delivered'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                             : isMitigated
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                             : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                         }`}
                       >
-                        {isMitigated ? 'MITIGATED' : currentStatus}
+                        {currentStatus === 'delivered' && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                        {currentStatus === 'delivered' ? 'DELIVERED' : isMitigated ? 'MITIGATED' : currentStatus}
                       </span>
                     </td>
 
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {isAtRisk ? (
+                        {currentStatus === 'delivered' ? (
+                          <span className="text-[10px] font-bold text-emerald-400 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Completed
+                          </span>
+                        ) : isAtRisk ? (
                           <button
                             onClick={() => {
                               setSolvingShipment(s);

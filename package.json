@@ -1,0 +1,17 @@
+{
+  "name": "supplyguard-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SupplyGuard AI — Autonomous Supply Chain Disruption Copilot & Fleet Optimizer",
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"BACKEND,FRONTEND,PYTHON\" -c \"cyan,magenta,yellow\" \"npm run dev --prefix src/backend\" \"npm run dev --prefix src/frontend\" \"cd src/python && .venv/bin/uvicorn app.main:app --port 8000\"",
+    "dev:backend": "npm run dev --prefix src/backend",
+    "dev:frontend": "npm run dev --prefix src/frontend",
+    "dev:python": "cd src/python && .venv/bin/uvicorn app.main:app --port 8000",
+    "seed": "npm run seed --prefix src/backend",
+    "test:python": "cd src/python && .venv/bin/pytest tests/ -v"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

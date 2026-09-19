@@ -13,10 +13,14 @@ import {
   ExternalLink,
   GitFork,
   Sparkles,
+  Package,
+  Thermometer,
+  Zap,
 } from 'lucide-react';
 
 interface DisruptionsPageProps {
   disruptions: any[];
+  shipments?: any[];
   onOpenApproval: () => void;
   onOpenSimulation: () => void;
   isRerouted: boolean;
@@ -27,6 +31,7 @@ interface DisruptionsPageProps {
 
 export const DisruptionsPage: React.FC<DisruptionsPageProps> = ({
   disruptions,
+  shipments = [],
   onOpenApproval,
   onOpenSimulation,
   isRerouted,
@@ -145,6 +150,30 @@ export const DisruptionsPage: React.FC<DisruptionsPageProps> = ({
     THREAT_MISSIONS[0];
 
   const isCurrentResolved = isMissionResolved(currentMission.disruption_id);
+
+  // Dynamic shipment reflection from Live Manifest Registry
+  const missionShipments = (shipments || []).filter((s) => {
+    if (currentMission.port_id === 'INBOM') {
+      return s.origin_port_id === 'INBOM' || s.destination_port_id === 'INBOM';
+    }
+    if (currentMission.port_id === 'AEJEA') {
+      return (
+        s.origin_port_id === 'AEJEA' ||
+        s.destination_port_id === 'AEJEA' ||
+        (s.current_route_id && (s.current_route_id.includes('RED') || s.current_route_id.includes('JEA')))
+      );
+    }
+    return s.origin_port_id === currentMission.port_id || s.destination_port_id === currentMission.port_id;
+  });
+
+  const missionCargoValue = missionShipments.reduce((acc, s) => acc + (s.value_usd || 0), 0);
+  const missionAtRiskCount = missionShipments.filter(
+    (s) => s.risk_score >= 70 && s.status !== 'mitigated' && s.status !== 'rerouted'
+  ).length;
+  const missionDeliveredCount = missionShipments.filter((s) => s.status === 'delivered').length;
+  const missionInTransitCount = missionShipments.filter(
+    (s) => s.status === 'in_transit' || s.status === 'rerouted' || s.status === 'mitigated'
+  ).length;
 
   const handleGoToScenarioMatrix = (threatId: string) => {
     localStorage.setItem('sg_selected_threat', threatId);
@@ -404,7 +433,7 @@ export const DisruptionsPage: React.FC<DisruptionsPageProps> = ({
               </span>
 
               <span className="text-xs text-slate-400 font-mono">
-                Exposure: {currentMission.impact_usd}
+                Cargo Exposure: <strong className="text-rose-400">${(missionCargoValue > 0 ? missionCargoValue / 1e6 : 14.5).toFixed(1)}M USD</strong> • {missionShipments.length} Tracked Consignments ({missionAtRiskCount} At-Risk, {missionDeliveredCount} Completed)
               </span>
             </div>
 
@@ -533,6 +562,173 @@ export const DisruptionsPage: React.FC<DisruptionsPageProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Live Affected Cargo Consignments Manifest Section */}
+      <div className="glass-panel p-6 rounded-2xl border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-white/10">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Package className="w-4 h-4 text-cyan-400" />
+              <h3 className="font-extrabold text-sm text-white">
+                Live Affected Cargo Manifest ({missionShipments.length} Correlated Consignments)
+              </h3>
+            </div>
+            <p className="text-xs text-slate-400">
+              Active and delivered shipments mapped to {currentMission.port_name} transit corridor
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">
+              {missionAtRiskCount} At Risk
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">
+              {missionInTransitCount} In Transit
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              {missionDeliveredCount} Completed
+            </span>
+            <button
+              onClick={() => navigate('/shipments')}
+              className="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold flex items-center gap-1 transition"
+            >
+              <span>View All in Registry</span>
+              <ExternalLink className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {missionShipments.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-500">
+            No specific container consignments currently mapped to this transit node.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold border-b border-white/5">
+                <tr>
+                  <th className="pb-2.5 px-2">Shipment / Cargo</th>
+                  <th className="pb-2.5 px-2">Corridor</th>
+                  <th className="pb-2.5 px-2">Container</th>
+                  <th className="pb-2.5 px-2">Cargo Value</th>
+                  <th className="pb-2.5 px-2">Risk Index</th>
+                  <th className="pb-2.5 px-2">Status</th>
+                  <th className="pb-2.5 px-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {missionShipments.slice(0, 10).map((s) => {
+                  const isHero = s.shipment_id === 'SHP-PHARMA-1001';
+                  const isAtRisk = s.risk_score >= 70 && s.status !== 'mitigated' && s.status !== 'rerouted';
+                  const isDelivered = s.status === 'delivered';
+
+                  return (
+                    <tr
+                      key={s.shipment_id}
+                      className={`hover:bg-slate-800/40 transition ${
+                        isHero ? 'bg-indigo-950/20' : ''
+                      }`}
+                    >
+                      <td className="py-2.5 px-2">
+                        <div className="flex items-center gap-2">
+                          {s.requires_refrigeration ? (
+                            <div className="p-1 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              <Thermometer className="w-3 h-3" />
+                            </div>
+                          ) : (
+                            <div className="p-1 rounded bg-slate-800 text-slate-400">
+                              <Package className="w-3 h-3" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-white flex items-center gap-1.5">
+                              <span>{s.title}</span>
+                              {isHero && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 uppercase">
+                                  Hero Load
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-mono">
+                              {s.shipment_id}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-2 font-mono text-[11px] text-white">
+                        {s.origin_port_id} &rarr; {s.destination_port_id}
+                      </td>
+
+                      <td className="py-2.5 px-2 font-mono text-[11px] text-slate-400">
+                        {s.container_id}
+                      </td>
+
+                      <td className="py-2.5 px-2 font-bold text-emerald-400">
+                        ${s.value_usd?.toLocaleString()} USD
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`font-bold text-xs ${
+                              s.risk_score >= 75
+                                ? 'text-rose-400'
+                                : s.risk_score >= 40
+                                ? 'text-amber-400'
+                                : 'text-emerald-400'
+                            }`}
+                          >
+                            {s.risk_score}/100
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-2.5 px-2">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit ${
+                            isAtRisk
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                              : isDelivered
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                              : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                          }`}
+                        >
+                          {isDelivered && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                          {s.status}
+                        </span>
+                      </td>
+
+                      <td className="py-2.5 px-2 text-right">
+                        {isAtRisk ? (
+                          <button
+                            onClick={() => {
+                              if (isHero && onOpenApproval) {
+                                onOpenApproval();
+                              } else {
+                                handleGoToScenarioMatrix(currentMission.disruption_id);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1 ml-auto shadow-sm"
+                          >
+                            <Zap className="w-3 h-3" />
+                            <span>Solve Risk</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            Normal
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Floating Toast Notification */}

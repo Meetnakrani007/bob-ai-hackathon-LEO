@@ -21,6 +21,10 @@ export const ShipmentsPage: React.FC<ShipmentsPageProps> = ({
   onMitigateShipment,
   onResetShipment,
 }) => {
+  const totalCargoValue = shipments.reduce((acc, s) => acc + (s.value_usd || 0), 0);
+  const deliveredCount = shipments.filter((s) => s.status === 'delivered').length;
+  const inTransitCount = shipments.filter((s) => s.status === 'in_transit' || s.status === 'rerouted' || s.status === 'mitigated').length;
+
   return (
     <div className="space-y-6">
       {/* Top Banner */}
@@ -33,7 +37,7 @@ export const ShipmentsPage: React.FC<ShipmentsPageProps> = ({
                 Live Manifest Registry
               </span>
               <span className="text-xs text-slate-400">
-                Total Tracked Cargo: $42.8M USD
+                Total Tracked Cargo: ${(totalCargoValue / 1000000).toFixed(1)}M USD • {inTransitCount} In-Transit • {deliveredCount} Completed
               </span>
             </div>
             <h1 className="text-2xl font-black text-white">

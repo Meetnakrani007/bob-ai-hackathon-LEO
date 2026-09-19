@@ -93,23 +93,46 @@ export function App() {
   const loadData = async (role = currentRole) => {
     setIsRefreshing(true);
     try {
-      if (!savedToken && !userProfile) {
-        const auth = await loginAsRole(role);
-        setUserProfile(auth.user);
+      if (!savedToken || !userProfile) {
+        try {
+          const auth = await loginAsRole(role);
+          setUserProfile(auth.user);
+        } catch (e) {
+          console.warn('Initial login error:', e);
+        }
       }
 
       const [disrRes, shipRes, portRes, fleetRes, auditRes] = await Promise.all([
         fetchActiveDisruptions().catch(() => ({ data: [] })),
-        fetchShipments({ limit: 60 }).catch(() => ({ data: [] })),
+        fetchShipments({ limit: 100 }).catch(() => ({ data: [] })),
         fetchPorts().catch(() => ({ data: [] })),
         fetchAvailableFleet().catch(() => ({ data: [] })),
         fetchAuditLogs().catch(() => ({ data: [] })),
       ]);
 
+      let loadedShipments = shipRes.data || [];
+      let loadedFleet = fleetRes.data || [];
+
+      // If initial fetch returned empty, force fresh role login and retry
+      if (loadedShipments.length === 0) {
+        try {
+          const auth = await loginAsRole(role);
+          setUserProfile(auth.user);
+          const [retryShip, retryFleet] = await Promise.all([
+            fetchShipments({ limit: 100 }).catch(() => ({ data: [] })),
+            fetchAvailableFleet().catch(() => ({ data: [] })),
+          ]);
+          loadedShipments = retryShip.data || [];
+          loadedFleet = retryFleet.data || [];
+        } catch (e) {
+          console.warn('Retry fetch failed:', e);
+        }
+      }
+
       setDisruptions(disrRes.data || []);
-      setShipments(shipRes.data || []);
+      setShipments(loadedShipments);
       setPorts(portRes.data || []);
-      setFleet(fleetRes.data || []);
+      setFleet(loadedFleet);
       setAuditLogs(auditRes.data || []);
 
     } catch (err) {
@@ -293,6 +316,7 @@ export function App() {
               element={
                 <DisruptionsPage
                   disruptions={disruptions}
+                  shipments={effectiveShipments}
                   onOpenApproval={() => setIsApprovalOpen(true)}
                   onOpenSimulation={() => setIsSimulationOpen(true)}
                   isRerouted={isRerouted}
@@ -330,6 +354,7 @@ export function App() {
               path="/map"
               element={
                 <MapPage
+                  shipments={effectiveShipments}
                   isRerouted={isRerouted}
                   onOpenApproval={() => setIsApprovalOpen(true)}
                 />

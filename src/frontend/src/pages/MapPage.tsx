@@ -16,22 +16,25 @@ import {
   Compass,
   Radio,
   ExternalLink,
+  Package,
 } from 'lucide-react';
 import { OperationsMap } from '../components/OperationsMap';
 import { INDIA_PORTS, PortData, LIVE_VESSELS, VesselTraffic } from '../data/indiaPortsData';
 
 interface MapPageProps {
+  shipments?: any[];
   isRerouted: boolean;
   onOpenApproval: () => void;
 }
 
 export const MapPage: React.FC<MapPageProps> = ({
+  shipments = [],
   isRerouted,
   onOpenApproval,
 }) => {
   const [selectedPortId, setSelectedPortId] = useState<string | null>('INBOM');
   const [selectedVesselId, setSelectedVesselId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'vessels' | 'ports'>('vessels');
+  const [activeTab, setActiveTab] = useState<'vessels' | 'ports' | 'cargo'>('vessels');
 
   const [approvedVesselIds, setApprovedVesselIds] = useState<string[]>(() => {
     try {
@@ -153,11 +156,25 @@ export const MapPage: React.FC<MapPageProps> = ({
                 <Anchor className="w-3.5 h-3.5 text-indigo-300" />
                 <span>Port Infrastructure Matrix ({INDIA_PORTS.length} Ports)</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('cargo')}
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-2 ${
+                  activeTab === 'cargo'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5 text-emerald-300" />
+                <span>Port Cargo Manifest ({shipments.length} Loads)</span>
+              </button>
             </div>
             <p className="text-xs text-slate-400">
               {activeTab === 'vessels'
                 ? 'Review unique cargo, special conditions, and approve contingency rerouting plans across Indian Ocean waters'
-                : 'Live capacity metrics, cold-chain reefer availability, and sailing distances from Mumbai Port'}
+                : activeTab === 'ports'
+                ? 'Live capacity metrics, port cargo volume, cold-chain reefer availability, and sailing distances'
+                : 'Correlated cargo containers docked or in transit to Indian peninsular maritime hubs'}
             </p>
           </div>
 
@@ -286,6 +303,7 @@ export const MapPage: React.FC<MapPageProps> = ({
                   <th className="pb-3 px-3">Coast / State</th>
                   <th className="pb-3 px-3">Operational Status</th>
                   <th className="pb-3 px-3">Berths / TEU</th>
+                  <th className="pb-3 px-3">Port Cargo Manifest</th>
                   <th className="pb-3 px-3">Reefer Plugs</th>
                   <th className="pb-3 px-3">Congestion / Dwell</th>
                   <th className="pb-3 px-3">Dist. from Mumbai</th>
@@ -295,6 +313,15 @@ export const MapPage: React.FC<MapPageProps> = ({
               <tbody className="divide-y divide-white/5">
                 {INDIA_PORTS.map((port) => {
                   const isSelected = selectedPortId === port.id;
+                  const portShipments = shipments.filter(
+                    (s) => s.origin_port_id === port.id || s.destination_port_id === port.id
+                  );
+                  const portCargoVal = portShipments.reduce((acc, s) => acc + (s.value_usd || 0), 0);
+                  const portAtRisk = portShipments.filter(
+                    (s) => s.risk_score >= 70 && s.status !== 'mitigated' && s.status !== 'rerouted'
+                  ).length;
+                  const portDelivered = portShipments.filter((s) => s.status === 'delivered').length;
+
                   return (
                     <tr
                       key={port.id}
@@ -338,6 +365,28 @@ export const MapPage: React.FC<MapPageProps> = ({
                       <td className="py-3.5 px-3 min-w-[140px] text-xs font-semibold text-slate-200">
                         <div>{port.berths} Deep Berths</div>
                         <span className="text-[10px] text-slate-400">{port.capacityTEU} TEU</span>
+                      </td>
+
+                      <td className="py-3.5 px-3 min-w-[160px]">
+                        <div className="font-bold text-white text-xs flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>{portShipments.length} Consignments</span>
+                        </div>
+                        <div className="text-[11px] text-emerald-400 font-semibold mt-0.5">
+                          ${(portCargoVal / 1e6).toFixed(1)}M USD
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          {portAtRisk > 0 && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+                              {portAtRisk} At Risk
+                            </span>
+                          )}
+                          {portDelivered > 0 && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                              {portDelivered} Delivered
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-3 min-w-[140px]">
@@ -400,6 +449,76 @@ export const MapPage: React.FC<MapPageProps> = ({
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Tab 3: All-Port Cargo Inventory Breakdown */}
+        {activeTab === 'cargo' && (
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead>
+                  <tr className="border-b border-white/10 text-[11px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <th className="pb-3 px-3">Shipment / Cargo</th>
+                    <th className="pb-3 px-3">Origin & Destination</th>
+                    <th className="pb-3 px-3">Container ID</th>
+                    <th className="pb-3 px-3">Cargo Value</th>
+                    <th className="pb-3 px-3">Risk Score</th>
+                    <th className="pb-3 px-3">Manifest Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {shipments.map((s) => {
+                    const isDelivered = s.status === 'delivered';
+                    const isAtRisk = s.risk_score >= 70 && !isDelivered;
+
+                    return (
+                      <tr key={s.shipment_id} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3 px-3">
+                          <div className="font-bold text-white text-xs">{s.title}</div>
+                          <div className="text-[10px] text-slate-500 font-mono">{s.shipment_id}</div>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-[11px] text-cyan-300">
+                          {s.origin_port_id} &rarr; {s.destination_port_id}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-slate-400 text-[11px]">
+                          {s.container_id}
+                        </td>
+                        <td className="py-3 px-3 text-emerald-400 font-bold">
+                          ${s.value_usd?.toLocaleString()} USD
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`font-bold ${
+                              s.risk_score >= 70
+                                ? 'text-rose-400'
+                                : s.risk_score >= 40
+                                ? 'text-amber-400'
+                                : 'text-emerald-400'
+                            }`}
+                          >
+                            {s.risk_score}/100
+                          </span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                              isAtRisk
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                                : isDelivered
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                            }`}
+                          >
+                            {s.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

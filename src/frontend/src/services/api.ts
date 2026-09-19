@@ -86,7 +86,18 @@ export function getCurrentRole(): UserRole {
 }
 
 async function request(endpoint: string, options: RequestInit = {}): Promise<any> {
-  const token = getCurrentToken();
+  let token = getCurrentToken();
+  
+  // If no token exists, automatically login as current role
+  if (!token && !endpoint.includes('/auth/')) {
+    try {
+      const auth = await loginAsRole(getCurrentRole());
+      token = auth.token;
+    } catch (e) {
+      console.warn('Initial auto-login attempt failed:', e);
+    }
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -96,10 +107,24 @@ async function request(endpoint: string, options: RequestInit = {}): Promise<any
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  let res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
   });
+
+  // If token is expired or unauthorized, automatically re-authenticate and retry once
+  if (res.status === 401 && !endpoint.includes('/auth/')) {
+    try {
+      const auth = await loginAsRole(getCurrentRole());
+      headers['Authorization'] = `Bearer ${auth.token}`;
+      res = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (e) {
+      console.warn('Token re-authentication retry failed:', e);
+    }
+  }
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
